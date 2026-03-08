@@ -19,5 +19,5 @@ session_maker = sessionmaker(bind=sql_engine)
 
 
 import os
-os.environ["ydb_gbldir"] = "/home/gerben/.yottadb/r2.02_x86_64/g/yottadb.gld"
+os.environ["ydb_gbldir"] = "..." #insert path
 import yottadb
