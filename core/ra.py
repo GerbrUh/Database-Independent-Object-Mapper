@@ -39,7 +39,7 @@ class Join:
 
 
     @staticmethod
-    def Union_op(a, b):
+    def Union_op(a: Type[BaseModel], b: Type[BaseModel]):
 
         data_a = Join._normalize_input(a)
         data_b = Join._normalize_input(b)
@@ -64,7 +64,7 @@ class Join:
         return results
 
     @staticmethod
-    def Difference(a, b):
+    def Difference(a: Type[BaseModel], b: Type[BaseModel]):
 
         data_a = Join._normalize_input(a)
         data_b = Join._normalize_input(b)
@@ -93,7 +93,7 @@ class Join:
         return results
     
     @staticmethod
-    def Intersect(a, b):
+    def Intersect(a: Type[BaseModel], b: Type[BaseModel]):
 
         data_a = Join._normalize_input(a)
         data_b = Join._normalize_input(b)
@@ -120,7 +120,7 @@ class Join:
         return results
     
     @staticmethod
-    def Projection(a, fields):
+    def Projection(a: Type[BaseModel], fields: List[str] ):
         data_a = Join._normalize_input(a)
         field_a = Join._get_field_types(a)
 
@@ -141,7 +141,7 @@ class Join:
         return results
 
     @staticmethod
-    def Rename(a, renames: dict[str, str]):
+    def Rename(a: Type[BaseModel], renames: dict[str, str]):
         data = Join._normalize_input(a)
         field_types = Join._get_field_types(a)
 
@@ -172,7 +172,7 @@ class Join:
         return results
 
     @staticmethod
-    def CartesianJoin(a, b):
+    def CartesianJoin(a: Type[BaseModel], b: Type[BaseModel]):
         data_a = Join._normalize_input(a)
         data_b = Join._normalize_input(b)
 
@@ -199,7 +199,7 @@ class Join:
         return results
 
     @staticmethod
-    def NaturalJoin(a, b):
+    def NaturalJoin(a: Type[BaseModel], b: Type[BaseModel]):
         data_a = Join._normalize_input(a)
         data_b = Join._normalize_input(b)
 
@@ -249,7 +249,7 @@ class Join:
             return results
 
     @staticmethod
-    def Join(a, b, match_fields: Optional[list[tuple[str, str]]] = None):
+    def Join(a: Type[BaseModel], b: Type[BaseModel], match_fields: Optional[list[tuple[str, str]]] = None):
         data_a = Join._normalize_input(a)
         data_b = Join._normalize_input(b)
         fields_a = Join._get_field_types(a)
@@ -373,7 +373,7 @@ class Join:
             return results
 
     @staticmethod
-    def Distinct(data, fields: Optional[List[str]] = None, keep: str = "first"):
+    def Distinct(data: Type[BaseModel], fields: Optional[List[str]] = None, keep: str = "first"):
         rows = Join._normalize_input(data)
 
         field_types = Join._get_field_types(data)
@@ -404,7 +404,7 @@ class Join:
         return results
 
     @staticmethod
-    def Order(data, order_by: List[Union[str, tuple]]):
+    def Order(data: Type[BaseModel], order_by: List[Union[str, tuple]]):
         rows = Join._normalize_input(data)
         field_types = Join._get_field_types(data)
 
