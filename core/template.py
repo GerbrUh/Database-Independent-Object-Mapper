@@ -28,7 +28,7 @@ class TemplateClass(BaseModel, ABC):
 
     @classmethod
     @abstractmethod
-    def find_by_field(cls: Type[T], field: str, value) -> Optional[T]:
+    def find_by_field(cls: Type[T], query: Dict[str, Any], *, ref_map: Optional[dict[str, type]] = None, multiple: bool = True, indexed: bool = False,) -> Union[Optional[T], List[T]]:
         pass
 
     @abstractmethod
