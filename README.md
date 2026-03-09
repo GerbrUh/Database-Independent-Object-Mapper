@@ -10,4 +10,5 @@ While most input and output signatures are fairly self-explanatory, one that is 
 - $sub: Finds all values with the provided value as a substring.
 - $regex: Allows the user to input a regex pattern.
 - Numeric operators: Allows the user to search on numeric values with the operations "$gt", "$gte", "$lt", "$lte", "$eq", "$ne".
+
 The same input structure is used by the RA Select function, with identical query requirements.
