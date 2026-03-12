@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional, Tuple, Type, Union
 from pydantic import BaseModel, create_model
 import re
 
-class Join:
+class RA:
     @staticmethod
     def _normalize_input(data):
         if isinstance(data, type) and issubclass(data, BaseModel):
@@ -39,13 +39,14 @@ class Join:
 
 
     @staticmethod
-    def Union_op(a: Type[BaseModel], b: Type[BaseModel]):
+    def Union_op(a, b):
 
-        data_a = Join._normalize_input(a)
-        data_b = Join._normalize_input(b)
+        data_a = RA._normalize_input(a)
+        data_b = RA._normalize_input(b)
 
-        fields_a = Join._get_field_types(a)
-        fields_b = Join._get_field_types(b)
+        fields_a = RA._get_field_types(a)
+        fields_b = RA._get_field_types(b)
+        print(data_a, data_b)
 
         if fields_a != fields_b:
             raise ValueError(
@@ -54,7 +55,7 @@ class Join:
                 f"Right fields: {fields_b}"
             )
 
-        JoinModel = create_model("Join", **fields_a)
+        JoinModel = create_model("RA", **fields_a)
         results = []
         
         for item in data_a:
@@ -64,13 +65,13 @@ class Join:
         return results
 
     @staticmethod
-    def Difference(a: Type[BaseModel], b: Type[BaseModel]):
+    def Difference(a, b):
 
-        data_a = Join._normalize_input(a)
-        data_b = Join._normalize_input(b)
+        data_a = RA._normalize_input(a)
+        data_b = RA._normalize_input(b)
 
-        fields_a = Join._get_field_types(a)
-        fields_b = Join._get_field_types(b)
+        fields_a = RA._get_field_types(a)
+        fields_b = RA._get_field_types(b)
 
 
         if fields_a != fields_b:
@@ -80,7 +81,7 @@ class Join:
                 f"Right fields: {fields_b}"
             )
 
-        JoinModel = create_model("Join", **fields_a)
+        JoinModel = create_model("RA", **fields_a)
         results = []
         
         set_b = {tuple(sorted(item.items())) for item in data_b}
@@ -93,13 +94,13 @@ class Join:
         return results
     
     @staticmethod
-    def Intersect(a: Type[BaseModel], b: Type[BaseModel]):
+    def Intersect(a, b):
 
-        data_a = Join._normalize_input(a)
-        data_b = Join._normalize_input(b)
+        data_a = RA._normalize_input(a)
+        data_b = RA._normalize_input(b)
 
-        fields_a = Join._get_field_types(a)
-        fields_b = Join._get_field_types(b)
+        fields_a = RA._get_field_types(a)
+        fields_b = RA._get_field_types(b)
 
         if fields_a != fields_b:
             raise ValueError(
@@ -108,7 +109,7 @@ class Join:
                 f"Right fields: {fields_b}"
             )
 
-        JoinModel = create_model("Join", **fields_a)
+        JoinModel = create_model("RA", **fields_a)
         results = []
         
         set_b = {tuple(sorted(item.items())) for item in data_b}
@@ -120,9 +121,9 @@ class Join:
         return results
     
     @staticmethod
-    def Projection(a: Type[BaseModel], fields: List[str] ):
-        data_a = Join._normalize_input(a)
-        field_a = Join._get_field_types(a)
+    def Projection(a, fields: List):
+        data_a = RA._normalize_input(a)
+        field_a = RA._get_field_types(a)
 
         missing = [f for f in fields if f not in field_a]
         if missing:
@@ -132,7 +133,7 @@ class Join:
             )
         
         fields_dict = {key: field_a[key] for key in fields}
-        JoinModel = create_model("Join", **fields_dict)
+        JoinModel = create_model("RA", **fields_dict)
         results = []
 
         for item in data_a:
@@ -141,9 +142,9 @@ class Join:
         return results
 
     @staticmethod
-    def Rename(a: Type[BaseModel], renames: dict[str, str]):
-        data = Join._normalize_input(a)
-        field_types = Join._get_field_types(a)
+    def Rename(a, renames: dict[str, str]):
+        data = RA._normalize_input(a)
+        field_types = RA._get_field_types(a)
 
         missing = [old for old in renames.keys() if old not in field_types]
         if missing:
@@ -159,7 +160,7 @@ class Join:
             else:
                 new_fields[old] = typ
 
-        JoinModel = create_model("Join", **new_fields)
+        JoinModel = create_model("RA", **new_fields)
         results = []
 
         for item in data:
@@ -172,12 +173,12 @@ class Join:
         return results
 
     @staticmethod
-    def CartesianJoin(a: Type[BaseModel], b: Type[BaseModel]):
-        data_a = Join._normalize_input(a)
-        data_b = Join._normalize_input(b)
+    def CartesianJoin(a, b):
+        data_a = RA._normalize_input(a)
+        data_b = RA._normalize_input(b)
 
-        fields_a = Join._get_field_types(a)
-        fields_b = Join._get_field_types(b)
+        fields_a = RA._get_field_types(a)
+        fields_b = RA._get_field_types(b)
 
         overlap = set(fields_a.keys()) & set(fields_b.keys())
         if overlap:
@@ -188,7 +189,7 @@ class Join:
 
         fields = {**fields_a, **fields_b}
 
-        JoinModel = create_model("Join", **fields)
+        JoinModel = create_model("RA", **fields)
 
         results = []
         for row_a in data_a:
@@ -199,12 +200,12 @@ class Join:
         return results
 
     @staticmethod
-    def NaturalJoin(a: Type[BaseModel], b: Type[BaseModel]):
-        data_a = Join._normalize_input(a)
-        data_b = Join._normalize_input(b)
+    def NaturalJoin(a, b):
+        data_a = RA._normalize_input(a)
+        data_b = RA._normalize_input(b)
 
-        fields_a = Join._get_field_types(a)
-        fields_b = Join._get_field_types(b)
+        fields_a = RA._get_field_types(a)
+        fields_b = RA._get_field_types(b)
 
         shared_fields = list(set(fields_a.keys()) & set(fields_b.keys()))
 
@@ -219,7 +220,7 @@ class Join:
                             )
 
             fields = {**fields_a, **fields_b}
-            JoinModel = create_model("Join", **fields)
+            JoinModel = create_model("RA", **fields)
 
             results = []
             lookup = {}
@@ -239,7 +240,7 @@ class Join:
         
         else:
             fields = {**fields_a, **fields_b}
-            JoinModel = create_model("Join", **fields)
+            JoinModel = create_model("RA", **fields)
             results = []
 
             for row_a in data_a:
@@ -249,11 +250,11 @@ class Join:
             return results
 
     @staticmethod
-    def Join(a: Type[BaseModel], b: Type[BaseModel], match_fields: Optional[list[tuple[str, str]]] = None):
-        data_a = Join._normalize_input(a)
-        data_b = Join._normalize_input(b)
-        fields_a = Join._get_field_types(a)
-        fields_b = Join._get_field_types(b)
+    def Join(a, b, match_fields: Optional[list[tuple[str, str]]] = None):
+        data_a = RA._normalize_input(a)
+        data_b = RA._normalize_input(b)
+        fields_a = RA._get_field_types(a)
+        fields_b = RA._get_field_types(b)
 
         if match_fields:
             for lf, rf in match_fields:
@@ -268,11 +269,11 @@ class Join:
 
         if not match_fields:
             fields = {**fields_a, **fields_b}
-            JoinModel = create_model("Join", **fields)
+            JoinModel = create_model("RA", **fields)
             return [JoinModel(**({**ra, **rb})) for ra in data_a for rb in data_b]
         
         fields = {**fields_a, **fields_b}
-        JoinModel = create_model("Join", **fields)
+        JoinModel = create_model("RA", **fields)
 
         lookup = {}
         for row_b in data_b:
@@ -295,19 +296,15 @@ class Join:
         data: Union[type, List[dict], List[Any]],
         query: Dict[str, Any],
         *,
-        ref_map: Optional[dict[str, type]] = None,
         multiple: bool = True,
-        indexed: bool = False,
     ):
         if isinstance(data, type) and hasattr(data, "find_by_field"):
             return data.find_by_field(
                 query,
-                ref_map=ref_map,
                 multiple=multiple,
-                indexed=indexed,
             )
 
-        rows = Join._normalize_input(data)
+        rows = RA._normalize_input(data)
         results = []
 
         def match_value(field_val: Any, condition: Any) -> bool:
@@ -373,10 +370,10 @@ class Join:
             return results
 
     @staticmethod
-    def Distinct(data: Type[BaseModel], fields: Optional[List[str]] = None, keep: str = "first"):
-        rows = Join._normalize_input(data)
+    def Distinct(data, fields: Optional[List[str]] = None, keep: str = "first"):
+        rows = RA._normalize_input(data)
 
-        field_types = Join._get_field_types(data)
+        field_types = RA._get_field_types(data)
 
         if fields is not None:
             invalid = [f for f in fields if f not in rows[0]]
@@ -398,15 +395,15 @@ class Join:
             else:
                 raise ValueError(f"Invalid 'keep' value: {keep}. Use 'first' or 'last'.")
 
-        JoinModel = create_model("Join", **field_types)
+        JoinModel = create_model("RA", **field_types)
         results = [JoinModel(**item) for item in seen.values()]
 
         return results
 
     @staticmethod
-    def Order(data: Type[BaseModel], order_by: List[Union[str, tuple]]):
-        rows = Join._normalize_input(data)
-        field_types = Join._get_field_types(data)
+    def Order(data, order_by: List[Union[str, tuple]]):
+        rows = RA._normalize_input(data)
+        field_types = RA._get_field_types(data)
 
         if not rows:
             return []
@@ -430,7 +427,7 @@ class Join:
             reverse = direction == "desc"
             rows.sort(key=lambda x: (x.get(field) is None, x.get(field)), reverse=reverse)
 
-        JoinModel = create_model("Join", **field_types)
+        JoinModel = create_model("RA", **field_types)
         results = [JoinModel(**item) for item in rows]
         return results
 

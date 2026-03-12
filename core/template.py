@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Type, TypeVar, List, Tuple
+from typing import Optional, Type, TypeVar, List, Tuple, Union, Dict, Any
 from pydantic import BaseModel, Field
 import json
 from tqdm import tqdm
@@ -13,7 +13,7 @@ class TemplateClass(BaseModel, ABC):
         validate_by_name = True
 
     @abstractmethod
-    def save(self: T) -> T:
+    def save(self: T) -> None:
         pass
 
     @classmethod
@@ -28,11 +28,15 @@ class TemplateClass(BaseModel, ABC):
 
     @classmethod
     @abstractmethod
-    def find_by_field(cls: Type[T], query: Dict[str, Any], *, ref_map: Optional[dict[str, type]] = None, multiple: bool = True, indexed: bool = False,) -> Union[Optional[T], List[T]]:
+    def find_by_field(cls: Type[T],
+        query: Dict[str, Any],
+        *,
+        multiple: bool = True,
+    ) -> Union[Optional[T], List[T]]:
         pass
 
     @abstractmethod
-    def delete(self):
+    def delete(self: T)-> None:
         pass
 
     @classmethod
@@ -43,10 +47,9 @@ class TemplateClass(BaseModel, ABC):
                 instance.delete()
 
     @classmethod
-    def mass_save(cls: Type[T], data: List[Tuple]) -> List[T]:
+    def mass_save(cls: Type[T], data: List[Tuple]) -> None:
         all_fields = list(cls.model_fields.keys())
 
-        instances = []
         for i, item in enumerate(data):
             if len(item) not in (len(all_fields), len(all_fields) - 1):
                 raise ValueError(
@@ -61,9 +64,6 @@ class TemplateClass(BaseModel, ABC):
 
             instance = cls(**obj_dict)
             instance.save()
-            instances.append(instance)
-
-        return instances
     
     @classmethod
     def save_to_json(cls: Type[T], json_path: str = 'data'):
@@ -81,18 +81,7 @@ class TemplateClass(BaseModel, ABC):
 
         with open(file_path, "r") as f:
             raw_data = json.load(f)  
-
-        all_fields = list(cls.model_fields.keys())
-
-        tuple_data: List[Tuple] = []
-        for item in raw_data:
-            if "_id" in item and "id" not in item:
-                item["id"] = item.pop("_id")
-
-            values = tuple(item.get(field) for field in all_fields)
-            tuple_data.append(values)
-
-        return cls.mass_save(tuple_data)
+        cls.mass_save(raw_data)
 
     
     @classmethod
