@@ -38,7 +38,6 @@ class MongoDocument(TemplateClass):
         else:
             result = self._collection().insert_one(data)
             self.id = str(result.inserted_id)
-        return self
 
     def delete(self):
         if self.id:
@@ -50,7 +49,7 @@ class MongoDocument(TemplateClass):
         return cls.parse_obj(data) if data else None
 
     @classmethod
-    def find_all(cls):
+    def find_all(cls) -> Optional[List[T]]:
         return [cls.parse_obj(doc) for doc in cls._collection().find()]
 
     @root_validator(pre=True)
@@ -70,30 +69,14 @@ class MongoDocument(TemplateClass):
         cls: Type[T],
         query: Dict[str, Any],
         *,
-        ref_map: Optional[dict[str, type]] = None,
         multiple: bool = True,
-        indexed: bool = False, 
     ) -> Union[Optional[T], List[T], List[tuple[T, Optional["MongoDocument"]]]]:
         if not isinstance(query, dict):
             raise ValueError("Query must be a dict of field → condition/value")
 
-        if ref_map is None:
-            ref_map = {}
-
-        _ = indexed
-
         mongo_query: Dict[str, Any] = {}
-        reference_lookups: List[tuple[str, str, Any, type]] = []
-
+        
         for field, condition in query.items():
-            if "." in field:
-                class_name, inner_field = field.split(".", 1)
-                ref_cls = ref_map.get(class_name)
-                if not ref_cls:
-                    raise ValueError(f"No reference class found for '{class_name}' in ref_map")
-                reference_lookups.append((class_name, inner_field, condition, ref_cls))
-                continue
-
             if isinstance(condition, dict):
                 if "$sub" in condition:
                     val = condition["$sub"]
@@ -117,39 +100,6 @@ class MongoDocument(TemplateClass):
         else:
             doc = collection.find_one(mongo_query)
             docs = [doc] if doc else []
-
-        if reference_lookups:
-            results: List[tuple[T, Optional["MongoDocument"]]] = []
-            for class_name, inner_field, val, ref_cls in reference_lookups:
-                ref_filter = {}
-                if isinstance(val, dict):
-                    if "$sub" in val:
-                        regex = re.escape(val["$sub"])
-                        ref_filter[inner_field] = {"$regex": regex, "$options": "i"}
-                    elif "$regex" in val:
-                        ref_filter[inner_field] = {"$regex": val["$regex"]}
-                    else:
-                        ref_filter[inner_field] = val
-                else:
-                    ref_filter[inner_field] = val
-
-                ref_docs = list(ref_cls.get_collection().find(ref_filter))
-                if not ref_docs:
-                    continue
-
-                ref_map_by_id = {str(doc["_id"]): ref_cls(**doc) for doc in ref_docs}
-                ref_id_field = f"{class_name.lower()}_id"
-
-                foreign_ids = list(ref_map_by_id.keys())
-                referencing_docs = list(collection.find({ref_id_field: {"$in": foreign_ids}}))
-
-                for ref_doc in referencing_docs:
-                    main_obj = cls(**ref_doc)
-                    ref_id = getattr(main_obj, ref_id_field, None)
-                    if ref_id and str(ref_id) in ref_map_by_id:
-                        results.append((main_obj, ref_map_by_id[str(ref_id)]))
-
-            return results if multiple else (results[:1] if results else [])
 
         parsed = [cls(**doc) for doc in docs]
         return parsed if multiple else (parsed[0] if parsed else None)

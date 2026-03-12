@@ -50,7 +50,6 @@ class YottaDocument(TemplateClass):
 
         node = yottadb.Key(self.__class__.get_root_node())[str(self.id)]
         node.value = self.__class__._serialize(self)
-        return self
 
     def delete(self):
         yottadb.Key(self.__class__.get_root_node())[str(self.id)].delete_tree()
@@ -88,9 +87,7 @@ class YottaDocument(TemplateClass):
         cls,
         query: dict[str, Any],
         *,
-        ref_map: Optional[dict[str, type["YottaDocument"]]] = None,
         multiple: bool = True,
-        indexed: bool = False,
     ) -> Union[Optional[T], List[T]]:
 
         if not isinstance(query, dict):

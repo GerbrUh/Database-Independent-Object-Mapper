@@ -43,8 +43,6 @@ class SQLDocument(SQLModel, TemplateClass):
             for c in table.columns:
                 setattr(self, c.name, getattr(refreshed, c.name))
 
-        return self
-
 
     @classmethod
     def find_by_id(cls: Type[T], id_value: str) -> Optional[T]:
@@ -179,9 +177,7 @@ class SQLDocument(SQLModel, TemplateClass):
         cls: Type[T],
         query: Dict[str, Any],
         *,
-        ref_map: Optional[dict[str, Type["SQLDocument"]]] = None,
         multiple: bool = True,
-        indexed: bool = False,
     ) -> Union[
         Optional[T],
         List[T],
@@ -191,22 +187,11 @@ class SQLDocument(SQLModel, TemplateClass):
         if not isinstance(query, dict):
             raise ValueError("Query must be a dict of field → condition/value")
 
-        if ref_map is None:
-            ref_map = {}
-
-        _ = indexed
 
         normal_conditions: Dict[str, Any] = {}
-        reference_lookups: List[tuple[str, str, Any]] = []
-
+        
         for field, condition in query.items():
-            if "." in field:
-                class_name, inner_field = field.split(".", 1)
-                if class_name not in ref_map:
-                    raise ValueError(f"No reference class found for '{class_name}' in ref_map")
-                reference_lookups.append((class_name, inner_field, condition))
-            else:
-                normal_conditions[field] = condition
+            normal_conditions[field] = condition
 
         results: Optional[List[T]] = None
 
@@ -251,56 +236,6 @@ class SQLDocument(SQLModel, TemplateClass):
 
         if results is None:
             results = []
-
-        if reference_lookups:
-            paired_results: List[tuple[T, Optional["SQLDocument"]]] = []
-
-            for class_name, inner_field, condition in reference_lookups:
-                ref_cls = ref_map[class_name]
-
-                if isinstance(condition, dict):
-                    if "$sub" in condition:
-                        ref_objs = ref_cls.find_by_field_sub(
-                            inner_field,
-                            condition["$sub"],
-                            multiple=True,
-                        )
-                    elif "$regex" in condition:
-                        ref_objs = ref_cls.find_by_field_sub(
-                            inner_field,
-                            condition["$regex"],
-                            multiple=True,
-                        )
-                    else:
-                        ref_objs = ref_cls.find_by_field_num(
-                            inner_field,
-                            condition,
-                            multiple=True,
-                        )
-                else:
-                    ref_objs = ref_cls.find_by_field_spec(
-                        inner_field,
-                        condition,
-                        multiple=True,
-                    )
-
-                if not ref_objs:
-                    continue
-
-                ref_by_id = {obj.id: obj for obj in ref_objs}
-                ref_id_field = f"{class_name.lower()}_id"
-
-                main_objs = cls.find_by_field_spec(
-                    ref_id_field,
-                    list(ref_by_id.keys()),
-                    multiple=True,
-                )
-
-                for obj in main_objs:
-                    ref_id = getattr(obj, ref_id_field, None)
-                    paired_results.append((obj, ref_by_id.get(ref_id)))
-
-            return paired_results if multiple else (paired_results[:1] if paired_results else [])
 
         if not multiple:
             return results[0] if results else None

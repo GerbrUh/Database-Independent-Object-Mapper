@@ -47,8 +47,6 @@ class SQLDocument(SQLModel, TemplateClass):
         with engine.begin() as conn:
             conn.execute(stmt)
 
-        return self 
-
     @classmethod
     def mass_save(cls, rows: List[Dict[str, Any]]) -> None:
         if not rows:
@@ -122,8 +120,6 @@ class SQLDocument(SQLModel, TemplateClass):
         query: Dict[str, Any],
         *,
         multiple: bool = True,
-        ref_map=None,
-        indexed=False,
     ):
         filters = []
 

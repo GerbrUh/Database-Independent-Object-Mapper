@@ -37,7 +37,6 @@ class YottaDocument(TemplateClass):
         for field, value in data.items():
             save_field(node, field, value)
 
-        return self
 
     def delete(self):
         yottadb.Key(self.__class__.get_root_node())[str(self.id)].delete_tree()
@@ -98,15 +97,10 @@ class YottaDocument(TemplateClass):
         cls: Type[T],
         query: dict[str, Any],
         *,
-        ref_map: Optional[dict[str, type["YottaDocument"]]] = None,
         multiple: bool = True,
-        indexed: bool = False,
     ) -> Union[Optional[T], List[T], List[tuple[T, Optional["YottaDocument"]]]]:
         if not isinstance(query, dict):
             raise ValueError("Query must be a dict of field → condition/value")
-
-        if ref_map is None:
-            ref_map = {}
 
         results = []
         root = yottadb.Key(cls.get_root_node())
@@ -122,18 +116,10 @@ class YottaDocument(TemplateClass):
                 continue
 
             decoded_subs = [s.decode() if isinstance(s, bytes) else str(s) for s in node.subscripts]
-            if indexed:
-                field_data = {}
-                for s in decoded_subs:
-                    val = node[s].value
-                    if isinstance(val, bytes):
-                        val = val.decode()
-                    field_data[s] = val
-            else:
-                field_data = {
-                    s: (node[s].value.decode() if isinstance(node[s].value, bytes) else node[s].value)
-                    for s in decoded_subs
-                }
+            field_data = {
+                s: (node[s].value.decode() if isinstance(node[s].value, bytes) else node[s].value)
+                for s in decoded_subs
+            }
 
             obj = cls.find_by_id(id_str)
             if not obj:
@@ -145,29 +131,7 @@ class YottaDocument(TemplateClass):
             for f, condition in query.items():
                 field_val = None
 
-                if "." in f:
-                    main_field, inner_field = f.split(".", 1)
-                    if main_field not in ref_map:
-                        raise ValueError(f"No reference model for '{main_field}' in ref_map")
-
-                    ref_class = ref_map[main_field]
-                    ref_id = getattr(obj, main_field, None)
-                    if not ref_id:
-                        match = False
-                        break
-
-                    if isinstance(ref_id, YottaDocument):
-                        ref_obj = ref_id
-                    else:
-                        ref_obj = ref_class.find_by_id(ref_id)
-                    if not ref_obj or not hasattr(ref_obj, inner_field):
-                        match = False
-                        break
-
-                    field_val = getattr(ref_obj, inner_field)
-                    referenced_instance = ref_obj
-                else:
-                    field_val = field_data.get(f, getattr(obj, f, None))
+                field_val = field_data.get(f, getattr(obj, f, None))
 
                 if field_val is None:
                     match = False
