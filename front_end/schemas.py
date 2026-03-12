@@ -1,4 +1,4 @@
-from core.ra import Join
+from core.ra import RA
 from datastores.mongo_store import MongoDocument
 from datastores.yotta_store_string import YottaDocument
 from datastores.sql_store import SQLDocument
@@ -7,6 +7,7 @@ from sqlmodel import Field
 
 class User(MongoDocument):
     name: Optional[str] = None
+    email: Optional[str] = None
     age: Optional[int] = None
      
 class Address(YottaDocument):
